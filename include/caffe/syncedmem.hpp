@@ -16,6 +16,8 @@ namespace caffe {
 // The improvement in performance seems negligible in the single GPU case,
 // but might be more significant for parallel training. Most importantly,
 // it improved stability for large models on many GPUs.
+// 如果在GPU模式下，CUDA可以使用，主机内存使用cudaMallocHost以页锁定方式分配
+// 对于单GPU，性能提升不是很明显，多GPU时会非常明显
 inline void CaffeMallocHost(void** ptr, size_t size, bool* use_cuda) {
 #ifndef CPU_ONLY
   if (Caffe::mode() == Caffe::GPU) {
@@ -85,16 +87,16 @@ class SyncedMemory
  private:
   void check_device();
 
-  void to_cpu();				//数据同步到CPU
+  void to_cpu();			  	//数据同步到CPU
   void to_gpu();
-  void* cpu_ptr_;				//位于CPU的数据指针
-  void* gpu_ptr_;
-  size_t size_;					//存储空间大小
+  void* cpu_ptr_;				  //位于CPU的数据指针
+  void* gpu_ptr_;         //GPU的数据指针
+  size_t size_;					  //存储空间大小
   SyncedHead head_;				//状态机变量
   bool own_cpu_data_;			//标志是否拥有CPU数据的所有权
   bool cpu_malloc_use_cuda_;
-  bool own_gpu_data_;
-  int device_;					//是CPU还是GPU设备号？？
+  bool own_gpu_data_;     //标志是否拥有GPU数据的所有权
+  int device_;					  //GPU设备号
 
   DISABLE_COPY_AND_ASSIGN(SyncedMemory);
 };  // class SyncedMemory

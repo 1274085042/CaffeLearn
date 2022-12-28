@@ -56,6 +56,7 @@ void Net<Dtype>::Init(const NetParameter& in_param)
   phase_ = in_param.state().phase();
   // Filter layers based on their include/exclude rules and
   // the current NetState.
+  // 根据include/exclude规则和当前的NetState过滤layers
   NetParameter filtered_param;
   FilterNet(in_param, &filtered_param);									//过滤一些参数仅保留当前阶段参数
   LOG_IF(INFO, Caffe::root_solver())
@@ -72,12 +73,12 @@ void Net<Dtype>::Init(const NetParameter& in_param)
   set<string> available_blobs;								//已有blob名集合
   memory_used_ = 0;														//统计内存占用
   // For each layer, set up its input and output
-  // 对每个layer，设置输入blob（bottomblob）和输出blob（topblob）
+  // 对每个layer，设置输入blob（bottom blob）和输出blob（top blob）
   bottom_vecs_.resize(param.layer_size());								//有多少层，就有多少个输入blob
   top_vecs_.resize(param.layer_size());
   bottom_id_vecs_.resize(param.layer_size());							//记录每个层的输入blob索引
-  param_id_vecs_.resize(param.layer_size());							//记录每个层的全职blob索引
-  top_id_vecs_.resize(param.layer_size());
+  param_id_vecs_.resize(param.layer_size());							//记录每个层的权值blob索引
+  top_id_vecs_.resize(param.layer_size());                //记录每个层的输出blob索引
   bottom_need_backward_.resize(param.layer_size());				//记录每个blob是否需要反向传播	
   for (int layer_id = 0; layer_id < param.layer_size(); ++layer_id) 
   {
@@ -104,7 +105,7 @@ void Net<Dtype>::Init(const NetParameter& in_param)
     layer_names_.push_back(layer_param.name());							//将layer名称添加到Net类的layer_names_对象中
     LOG_IF(INFO, Caffe::root_solver())
         << "Creating Layer " << layer_param.name();
-    bool need_backward = false;											        //判断该层判断该层是否需要反向传播
+    bool need_backward = false;											        //判断该层是否需要反向传播
 
     // Figure out this layer's input and output
 	  // 确定layer的输入blob和输出blob
@@ -125,7 +126,7 @@ void Net<Dtype>::Init(const NetParameter& in_param)
     {
       AppendTop(param, layer_id, top_id, &available_blobs, &blob_name_to_idx);
       // Collect Input layer tops as Net inputs.
-	  // 收集输入层（InputLayer）信息，如果有，其输出blob将作为整个Net的输入
+	    // 收集输入层（InputLayer）信息，如果有，其输出blob将作为整个Net的输入
       if (layer_param.type() == "Input") 
       {
         const int blob_id = blobs_.size() - 1;
@@ -172,11 +173,11 @@ void Net<Dtype>::Init(const NetParameter& in_param)
             << "    with loss weight " << layer->loss(top_id);
 	      //除了损失层的loss_weight为1，其它层都为0
       }
-	    //统计每个输出blob的内存占用量  
+	    //统计所有输出blob的元素个数 
       memory_used_ += top_vecs_[layer_id][top_id]->count();
     }
 
-	  //打印搜有输出blob的内存占用量
+	  //打印所有输出blob的内存占用量
     LOG_IF(INFO, Caffe::root_solver())
         << "Memory required for data: " << memory_used_ * sizeof(Dtype);
 
@@ -196,7 +197,7 @@ void Net<Dtype>::Init(const NetParameter& in_param)
           &layer_param.param(param_id) : &default_param_spec;
       const bool param_need_backward = param_spec->lr_mult() != 0;
 
-	  //设置权值层param（lr_mult:0）可以禁止其反向传播，即冻结权值
+	    //设置权值层param（lr_mult:0）可以禁止其反向传播，即冻结权值
       need_backward |= param_need_backward;
       layers_[layer_id]->set_param_propagate_down(param_id,
                                                   param_need_backward);
@@ -308,8 +309,7 @@ void Net<Dtype>::Init(const NetParameter& in_param)
     }
   }
   // In the end, all remaining blobs are considered output blobs.
-  // 略去了目前不关注的信息，比如loss设置
-  //所有剩下的blob都被看作输出blob
+  // 所有剩下的blob都被看作输出blob
   for (set<string>::iterator it = available_blobs.begin();
       it != available_blobs.end(); ++it) {
     LOG_IF(INFO, Caffe::root_solver())
@@ -334,8 +334,8 @@ void Net<Dtype>::Init(const NetParameter& in_param)
 }
 
 template <typename Dtype>
-void Net<Dtype>::FilterNet(const NetParameter& param,
-    NetParameter* param_filtered) {
+void Net<Dtype>::FilterNet(const NetParameter& param, NetParameter* param_filtered) 
+{
   NetState net_state(param.state());
   param_filtered->CopyFrom(param);
   param_filtered->clear_layer();
@@ -445,7 +445,7 @@ void Net<Dtype>::AppendTop(const NetParameter& param, const int layer_id,
   if (blob_name_to_idx && layer_param->bottom_size() > top_id &&
       blob_name == layer_param->bottom(top_id)) {
     // In-place computation
-	// 是原位计算
+	  // 是原位计算
     LOG_IF(INFO, Caffe::root_solver())
         << layer_param->name() << " -> " << blob_name << " (in-place)";
     top_vecs_[layer_id].push_back(blobs_[(*blob_name_to_idx)[blob_name]].get());
@@ -454,7 +454,7 @@ void Net<Dtype>::AppendTop(const NetParameter& param, const int layer_id,
              blob_name_to_idx->find(blob_name) != blob_name_to_idx->end()) {
     // If we are not doing in-place computation but have duplicated blobs,
     // raise an error.
-	// 如果不是原位计算，但名字重复，则报错
+  	// 如果不是原位计算，但名字重复，则报错
     LOG(FATAL) << "Top blob '" << blob_name
                << "' produced by multiple sources.";
   } else {
@@ -464,7 +464,7 @@ void Net<Dtype>::AppendTop(const NetParameter& param, const int layer_id,
       LOG(INFO) << layer_param->name() << " -> " << blob_name;
     }
     shared_ptr<Blob<Dtype> > blob_pointer(new Blob<Dtype>());
-	//新建一个blob，插入到Net::blobs_最后
+	  //新建一个blob，插入到Net::blobs_最后
     const int blob_id = blobs_.size();
     blobs_.push_back(blob_pointer);
     blob_names_.push_back(blob_name);
@@ -508,7 +508,8 @@ int Net<Dtype>::AppendBottom(const NetParameter& param, const int layer_id,
 //登记每层权值blob
 template <typename Dtype>
 void Net<Dtype>::AppendParam(const NetParameter& param, const int layer_id,
-                             const int param_id) {
+                             const int param_id) 
+{
   const LayerParameter& layer_param = layers_[layer_id]->layer_param();
   const int param_size = layer_param.param_size();
   string param_name =
@@ -532,7 +533,7 @@ void Net<Dtype>::AppendParam(const NetParameter& param, const int layer_id,
     // This layer "owns" this parameter blob -- it is either anonymous
     // (i.e., not given a param_name) or explicitly given a name that we
     // haven't already seen.
-	// 该层拥有权值blob
+	  // 该层拥有权值blob
     param_owners_.push_back(-1);
     if (param_name.size()) {
       param_names_index_[param_name] = net_param_id;
@@ -610,9 +611,11 @@ Dtype Net<Dtype>::ForwardFromTo(int start, int end) {								//计算从start层
   CHECK_GE(start, 0);
   CHECK_LT(end, layers_.size());
   Dtype loss = 0;
-  for (int i = start; i <= end; ++i) {
-  //调用每个Layer的Forward（）函数，得到每层loss
-    for (int c = 0; c < before_forward_.size(); ++c) {
+  for (int i = start; i <= end; ++i) 
+  {
+    //调用每个Layer的Forward（）函数，得到每层loss
+    for (int c = 0; c < before_forward_.size(); ++c) 
+    {
       before_forward_[c]->run(i);
     }
     Dtype layer_loss = layers_[i]->Forward(bottom_vecs_[i], top_vecs_[i]);
@@ -627,17 +630,17 @@ Dtype Net<Dtype>::ForwardFromTo(int start, int end) {								//计算从start层
 }
 
 template <typename Dtype>
-Dtype Net<Dtype>::ForwardFrom(int start) {										//计算从start开始到最后一层的前向传播
+Dtype Net<Dtype>::ForwardFrom(int start) {								//计算从start开始到最后一层的前向传播
   return ForwardFromTo(start, layers_.size() - 1);
 }
 
 template <typename Dtype>
-Dtype Net<Dtype>::ForwardTo(int end) {											//计算从第一层到end层的前向传播	
+Dtype Net<Dtype>::ForwardTo(int end) {										//计算从第一层到end层的前向传播	
   return ForwardFromTo(0, end);
 }
 
 template <typename Dtype>
-const vector<Blob<Dtype>*>& Net<Dtype>::Forward(Dtype* loss) {					//计算整个网络的前向传播，返回损失值（可选）和网络输出blob
+const vector<Blob<Dtype>*>& Net<Dtype>::Forward(Dtype* loss) {//计算整个网络的前向传播，返回损失值（可选）和网络输出blob
   if (loss != NULL) {
     *loss = ForwardFromTo(0, layers_.size() - 1);
   } else {
@@ -648,9 +651,9 @@ const vector<Blob<Dtype>*>& Net<Dtype>::Forward(Dtype* loss) {					//计算整�
 
 template <typename Dtype>
 const vector<Blob<Dtype>*>& Net<Dtype>::Forward(
-
 //接受输入blob最为Net输入，计算前向传播，得到损失值（可选）和网络输出blob
-    const vector<Blob<Dtype>*> & bottom, Dtype* loss) {
+    const vector<Blob<Dtype>*> & bottom, Dtype* loss) 
+{
   LOG_EVERY_N(WARNING, 1000) << "DEPRECATED: Forward(bottom, loss) "
       << "will be removed in a future version. Use Forward(loss).";
   // Copy bottom to net bottoms

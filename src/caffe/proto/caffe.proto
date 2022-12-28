@@ -391,6 +391,9 @@ message LayerParameter {
   // backpropagation to those inputs is skipped.
   //
   // The size must be either 0 or equal to the number of bottoms.
+  // 指定是否反向传播到每个bottom，如果未指定，Caffe将自动推断每个输入是否需要反向传播，
+  // 如果对某些输入设置为true，则强制反向传播到这些输入；如果对某些输入设置为false，
+  // 则反向传播会跳过这些输入
   repeated bool propagate_down = 11;
 
   // Rules controlling whether and when a layer is included in the network,

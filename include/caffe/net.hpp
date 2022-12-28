@@ -323,23 +323,24 @@ class Net
   Phase phase_;
   /// @brief Individual layers in the net
   vector<shared_ptr<Layer<Dtype> > > layers_;					   //网络中的独立层
-  vector<string> layer_names_;									   //层名称	
-  map<string, int> layer_names_index_;								//层名称与索引映射表
-  vector<bool> layer_need_backward_;								//标记某个层是否需要bp
+  vector<string> layer_names_;									         //层名称	
+  map<string, int> layer_names_index_;							     //层名称与索引映射表
+  vector<bool> layer_need_backward_;								     //标记某个层是否需要bp
   /// @brief the blobs storing intermediate results between the layer.
-  vector<shared_ptr<Blob<Dtype> > > blobs_;						//层与层中间传递数据的管道	
-  vector<string> blob_names_;												  //blob名称
-  map<string, int> blob_names_index_;									//blob名称与索引映射表
-  vector<bool> blob_need_backward_;										//标记某个blob是否需要bp
+  vector<shared_ptr<Blob<Dtype> > > blobs_;						   //层与层中间传递数据的管道	
+  vector<string> blob_names_;												     //blob名称
+  map<string, int> blob_names_index_;									   //blob名称与索引映射表
+  vector<bool> blob_need_backward_;										   //标记某个blob是否需要bp
   /// bottom_vecs stores the vectors containing the input for each layer.
   /// They don't actually host the blobs (blobs_ does), so we simply store
   /// pointers.
   //
-  //bottom_vecs 存放了每个层的输入blob，它们并不是这些blob的所有者（所有者为blobs_）,只是存放了指针
+  //bottom_vecs_ 存放了每个层的输入blob，它们并不是这些blob的所有者（所有者为blobs_）,只是存放了指针
   vector<vector<Blob<Dtype>*> > bottom_vecs_;
   vector<vector<int> > bottom_id_vecs_;
   vector<vector<bool> > bottom_need_backward_;
   /// top_vecs stores the vectors containing the output for each layer
+  //存放每个层的输出blob
   vector<vector<Blob<Dtype>*> > top_vecs_;
   vector<vector<int> > top_id_vecs_;
   /// Vector of weight in the loss (or objective) function of each net blob,

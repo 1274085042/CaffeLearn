@@ -110,7 +110,7 @@ class Solver {
  protected:
   string SnapshotFilename(const string& extension);
   string SnapshotToBinaryProto();									//保存为二进制的ProtoBuffer文件
-  string SnapshotToHDF5();											//保持为HDF5文件
+  string SnapshotToHDF5();											  //保持为HDF5文件
   // The test routine
   // 对网络进行测试
   void TestAll();
@@ -121,11 +121,11 @@ class Solver {
   void DisplayOutputBlobs(const int net_id);
   void UpdateSmoothedLoss(Dtype loss, int start_iter, int average_loss);
 
-  SolverParameter param_;											//用于从prototxt中获取参数
-  int iter_;														//当前迭代次数
-  int current_step_;												//当前step大小，用于学习速率步进衰减策略	
+  SolverParameter param_;											    //用于从prototxt中获取参数
+  int iter_;														          //当前迭代次数
+  int current_step_;												      //当前step大小，用于学习速率步进衰减策略	
   shared_ptr<Net<Dtype> > net_;										//若干Net对象的指针，用于训练
-  vector<shared_ptr<Net<Dtype> > > test_nets_;						//若干Net对象的指针，用于测试
+  vector<shared_ptr<Net<Dtype> > > test_nets_;	  //若干Net对象的指针，用于测试
   vector<Callback*> callbacks_;										//回调函数列表	
   vector<Dtype> losses_;
   Dtype smoothed_loss_;

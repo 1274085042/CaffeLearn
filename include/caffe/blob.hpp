@@ -21,7 +21,6 @@ namespace caffe {
  * TODO(dox): more thorough description.
  */
 template <typename Dtype>
-
 //Blob 类声明
 class Blob {
  public:
@@ -299,11 +298,11 @@ class Blob {
 //类成员变量
  protected:
   shared_ptr<SyncedMemory> data_;			//存放指向data的指针
-  shared_ptr<SyncedMemory> diff_;
+  shared_ptr<SyncedMemory> diff_;     //存放梯度的指针
   shared_ptr<SyncedMemory> shape_data_;
-  vector<int> shape_;						//形状信息
-  int count_;							    //存放有效元素数目信息
-  int capacity_;							//存放Blob容器的容量信息
+  vector<int> shape_;					      	//形状信息
+  int count_;							            //存放有效元素数目信息
+  int capacity_;							        //存放Blob容器的容量信息
 
   DISABLE_COPY_AND_ASSIGN(Blob);
 };  // class Blob

@@ -39,7 +39,6 @@ class Layer
    * layer.
    */
   //显示构造函数，从LayerParameter对象中加载配置
-  
   explicit Layer(const LayerParameter& param)
     : layer_param_(param) {
       // Set phase and copy blobs (if there are any).
@@ -185,7 +184,6 @@ class Layer
    * @brief Returns the scalar loss associated with a top blob at a given index.
    */
   //返回与某个top blob相关的标量loss
-
   inline Dtype loss(const int top_index) const {
     return (loss_.size() > top_index) ? loss_[top_index] : Dtype(0);
   }
@@ -213,9 +211,8 @@ class Layer
    * layer expects some exact number of bottom blobs.
    */
   //返回layer需要输入的bottom blobs数目
-
-
   virtual inline int ExactNumBottomBlobs() const { return -1; }
+
   /**
    * @brief Returns the minimum number of bottom blobs required by the layer,
    *        or -1 if no minimum number is required.
@@ -450,15 +447,15 @@ inline Dtype Layer<Dtype>::Forward(const vector<Blob<Dtype>*>& bottom,
     const vector<Blob<Dtype>*>& top) {
   Dtype loss = 0;
   Reshape(bottom, top);
-  switch (Caffe::mode()) {												//判断计算设备			
+  switch (Caffe::mode()) {												         //判断计算设备			
   case Caffe::CPU:
-    Forward_cpu(bottom, top);											//在cpu上执行Forward计算
-    for (int top_id = 0; top_id < top.size(); ++top_id) {				//计算loss
+    Forward_cpu(bottom, top);											         //在cpu上执行Forward计算
+    for (int top_id = 0; top_id < top.size(); ++top_id) {	 //计算loss
       if (!this->loss(top_id)) { continue; }
       const int count = top[top_id]->count();							
-      const Dtype* data = top[top_id]->cpu_data();						//若为LossLayer则通过Forward函数计算出的全局损失函数放在topblob data域中
-      const Dtype* loss_weights = top[top_id]->cpu_diff();              //若loss_weight不为0，将SetLossWeight函数中设置好的loss权重放在topblob的diff域
-      loss += caffe_cpu_dot(count, data, loss_weights);					//计算加权后的loss之和，得到标量loss值
+      const Dtype* data = top[top_id]->cpu_data();					//若为LossLayer则通过Forward函数计算出的损失，放在top blob data域中
+      const Dtype* loss_weights = top[top_id]->cpu_diff();  //若loss_weight不为0，将SetLossWeight函数中设置好的loss权重放在top blob的diff域
+      loss += caffe_cpu_dot(count, data, loss_weights);			//计算加权后的loss之和，得到标量loss值
     }
     break;
   case Caffe::GPU:
@@ -498,8 +495,7 @@ inline void Layer<Dtype>::Backward(const vector<Blob<Dtype>*>& top,
 }
 
 // Serialize LayerParameter to protocol buffer
-//将曾配置参数序列化为ptotobuffer
-
+//将层配置参数序列化为ptotobuffer
 template <typename Dtype>
 void Layer<Dtype>::ToProto(LayerParameter* param, bool write_diff) {
   param->Clear();

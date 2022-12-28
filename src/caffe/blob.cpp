@@ -37,7 +37,7 @@ void Blob<Dtype>::Reshape(const vector<int>& shape) {
     shape_[i] = shape[i];
     shape_data[i] = shape[i];
   }
-  if (count_ > capacity_) {
+  if (count_ > capacity_) {   // 如果新的count_大于已经分配的容量，则对data_和diff_进行扩容
     capacity_ = count_;
     data_.reset(new SyncedMemory(capacity_ * sizeof(Dtype)));
     diff_.reset(new SyncedMemory(capacity_ * sizeof(Dtype)));
@@ -473,7 +473,7 @@ void Blob<Dtype>::CopyFrom(const Blob& source, bool copy_diff, bool reshape) {
 }
 
 
-//从BlobProtof中加载一个Blob,适用于从此盘载入之前导出的blob
+//从BlobProtof中加载一个Blob,适用于从磁盘载入之前导出的blob
 template <typename Dtype>
 void Blob<Dtype>::FromProto(const BlobProto& proto, bool reshape) {
   if (reshape) {
